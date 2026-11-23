@@ -13,7 +13,7 @@ const COMMON_ENTITIES = [
   { name: "mobile_start", domain: "binary_sensor", suffix: "mobile_start" },
   { name: "status", domain: "sensor", suffix: "status" },
   { name: "phase", domain: "sensor", suffix: "program_phase" },
-  { name: "program_type", domain: "sensor", suffix: "program_type" },
+  { name: "program_id", domain: "sensor", suffix: "program_id" },
   { name: "progress", domain: "sensor", suffix: "progress" },
   { name: "remaining", domain: "sensor", suffix: "remaining" },
   { name: "elapsed", domain: "sensor", suffix: "elapsed" },
@@ -47,11 +47,6 @@ export class Appliance {
   // The concrete LCD for this appliance.
   createDisplay() {
     throw new Error("Appliance.createDisplay() must be implemented");
-  }
-
-  // Whether the front has a vent grille (a dryer does, a washer does not).
-  get hasGrille() {
-    return false;
   }
 
   // How the drum area should look: { water, steam, crosspiece: {spin, fast} }.

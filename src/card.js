@@ -32,7 +32,7 @@ export class MieleApplianceCard extends HTMLElement {
   }
 
   getCardSize() {
-    return 14;
+    return 12;
   }
 
   static getStubConfig() {
@@ -76,7 +76,7 @@ export class MieleApplianceCard extends HTMLElement {
 
   _build() {
     const root = this.shadowRoot || this.attachShadow({ mode: "open" });
-    root.innerHTML = buildTemplate({ hinge: this._config.hinge, grille: this._appliance.hasGrille });
+    root.innerHTML = buildTemplate({ hinge: this._config.hinge });
     this._root = root;
     this._built = true;
     this._segments = [];
@@ -137,7 +137,7 @@ export class MieleApplianceCard extends HTMLElement {
       wifiUnit: this._unit("wifi"),
       targetTemp: num("target_temperature"),
       tempUnit: this._unit("target_temperature"),
-      programType: str("program_type"),
+      programId: str("program_id"),
       notification: this._str("notification") === "on",
       smartGrid: this._str("smart_grid") === "on",
       mobileStart: this._str("mobile_start") === "on",

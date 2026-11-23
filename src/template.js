@@ -3,7 +3,6 @@ import {
   DOOR_CX, DOOR_CY, DOOR_R, WATER_R,
   RING_D, RING_ARC_LEN,
   SCR_X, SCR_Y, SCR_W, SCR_H,
-  GRILLE_X0, GRILLE_X1, GRILLE_Y0, GRILLE_LINES, GRILLE_GAP,
   INDICATOR_Y, INDICATORS,
   CROSS_D, CROSS_ARM_ANGLES, CROSS_ARM_W, CROSS_ARM_L, CROSS_HUB_R, POOL_D, POOL_SURFACE_Y, SPLASHES, STEAM,
 } from "./geometry.js";
@@ -24,16 +23,7 @@ function indicator(id, cx, { ring = false } = {}) {
     </g>`;
 }
 
-// The dryer's vent grille, lower right. A washer front has none.
-function grilleMarkup() {
-  return `
-            <rect class="grille-frame" x="${GRILLE_X0 - 3}" y="${GRILLE_Y0 - 3}" width="${GRILLE_X1 - GRILLE_X0 + 6}" height="${(GRILLE_LINES - 1) * GRILLE_GAP + 6}" rx="2"/>
-            ${Array.from({ length: GRILLE_LINES }, (_, i) =>
-              `<line class="vent" x1="${GRILLE_X0}" y1="${GRILLE_Y0 + i * GRILLE_GAP}" x2="${GRILLE_X1}" y2="${GRILLE_Y0 + i * GRILLE_GAP}"/>`
-            ).join("")}`;
-}
-
-export function buildTemplate({ hinge = "left", grille = false } = {}) {
+export function buildTemplate({ hinge = "left" } = {}) {
   return `
     <style>${STYLES}</style>
     <ha-card>
@@ -101,9 +91,11 @@ export function buildTemplate({ hinge = "left", grille = false } = {}) {
             ${indicator("power", INDICATORS.power, { ring: true })}
             <rect class="screen-bezel" x="${SCR_X}" y="${SCR_Y}" width="${SCR_W}" height="${SCR_H}" rx="4"/>
             <g id="lcd"></g>
-            <path class="ring-track" id="ring-track" d="${RING_D}"
-                  stroke-dasharray="${RING_ARC_LEN.toFixed(2)}" stroke-dashoffset="0"/>
-            <g id="ring-fill"></g>
+            <g class="closed-only">
+              <path class="ring-track" id="ring-track" d="${RING_D}"
+                    stroke-dasharray="${RING_ARC_LEN.toFixed(2)}" stroke-dashoffset="0"/>
+              <g id="ring-fill"></g>
+            </g>
             ${openingMarkup()}
             <circle class="rim closed-only" cx="${DOOR_CX}" cy="${DOOR_CY}" r="${DOOR_R}"/>
             <g class="crosspiece" id="crosspiece" clip-path="url(#waterClip)">
@@ -143,7 +135,6 @@ export function buildTemplate({ hinge = "left", grille = false } = {}) {
               ).join("")}
             </g>
             ${doorMarkup(hinge)}
-            ${grille ? grilleMarkup() : ""}
           </svg>
         </div>
       </div>

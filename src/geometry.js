@@ -1,9 +1,9 @@
-// Layout geometry (viewBox 0 0 200 300) and the static SVG paths derived from it.
+// Layout geometry (viewBox 0 0 200 246) and the static SVG paths derived from it.
 
-export const BODY_X = 2, BODY_Y = 2, BODY_W = 196, BODY_H = 296;
+export const BODY_X = 2, BODY_Y = 2, BODY_W = 196, BODY_H = 242;
 export const BODY_RX = 6;
 export const BAR_H = 46; // dark control strip, flush with the top of the body
-export const DOOR_CX = 100, DOOR_CY = 155;
+export const DOOR_CX = 100, DOOR_CY = 147;
 export const DOOR_R = 82; // metal rim
 export const RING_R = 90; // progress gauge, outside the rim
 export const SWEEP_DEG = 300;
@@ -26,8 +26,6 @@ export const BAR_D = `M ${BODY_X + BODY_RX} ${BODY_Y} L ${BODY_X + BODY_W - BODY
 // Screen rect, inside the top bar.
 export const SCR_X = 32, SCR_Y = 5, SCR_W = 162, SCR_H = 40; // equal 2-unit margin above and below, within BAR_H
 
-// Vent grille, lower-right of the body.
-export const GRILLE_X0 = 118, GRILLE_X1 = 184, GRILLE_Y0 = 248, GRILLE_LINES = 9, GRILLE_GAP = 5;
 
 // Status indicators in the control bar (left to right).
 export const INDICATOR_Y = 25; // vertical centre of the control strip

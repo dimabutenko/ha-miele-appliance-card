@@ -13,8 +13,6 @@ export const STYLES = `
   svg { width: 100%; height: 100%; overflow: visible; display: block; }
   .body { fill: url(#bodyGrad); stroke: #c7c7c9; stroke-width: 1.5; }
   .bar { fill: #262b33; }
-  .vent { stroke: #cfcfcf; stroke-width: 1.4; }
-  .grille-frame { fill: none; stroke: #d6d6d7; stroke-width: 1; }
   .pwr-ring { fill: none; stroke: #7d8590; stroke-width: 1.2; }
   .dot { stroke: rgba(0,0,0,0.35); stroke-width: 0.5; transition: fill 0.4s ease; }
   .closed-only, .open-only { transition: opacity 0.5s ease; }
@@ -72,4 +70,6 @@ export const STYLES = `
   .lcd-label { font-family: "Consolas", "SFMono-Regular", monospace; pointer-events: none; }
   .lcd-num { font-family: var(--primary-font-family, Roboto, "Segoe UI", system-ui, sans-serif); font-variant-numeric: tabular-nums; pointer-events: none; }
   .lcd-colon.blink { animation: blink 1s step-end infinite; }
+  .lcd-pulse { animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 `;

@@ -6,10 +6,6 @@ export class Dryer extends Appliance {
     return [{ name: "drying_step", domain: "sensor", suffix: "drying_step" }];
   }
 
-  get hasGrille() {
-    return true;
-  }
-
   createDisplay(t) {
     return new DryerDisplay(t);
   }
