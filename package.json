@@ -1,0 +1,11 @@
+{
+  "name": "ha-miele-appliance-card",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/main.js --bundle --format=esm --target=es2020 --outfile=miele-appliance-card.js --banner:js=\"/* Generated from src/ by 'npm run build' - do not edit. */\""
+  },
+  "devDependencies": {
+    "esbuild": "0.25.0"
+  }
+}

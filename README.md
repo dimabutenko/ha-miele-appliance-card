@@ -20,8 +20,7 @@ Settings → Marketplace → Dashboards → ⋮ → *Add from link* → paste th
 
 ### Manual
 
-1. Copy `miele-appliance-card.js` **and the whole `src/` folder** to `/config/www/community/miele-appliance-card/`
-   (the card is split into ES modules).
+1. Copy `miele-appliance-card.js` to `/config/www/community/miele-appliance-card/`.
 2. Add it as a Lovelace resource (Settings → Dashboards → ⋮ → Resources → Add resource):
    `/local/community/miele-appliance-card/miele-appliance-card.js`, type *JavaScript Module*.
 
@@ -42,7 +41,7 @@ indicator dots in the control strip (Wi-Fi, door, fault, power) to see what each
 ### Translations
 
 All user-facing text lives in `src/i18n/` (`en.js` is the default, `ru.js` is Russian). To add a
-language, copy `en.js` to e.g. `de.js`, translate the values, and register it in `src/i18n/index.js`.
+language, copy `en.js` to e.g. `de.js`, translate the values, register it in `src/i18n/index.js` and run `npm run build`.
 
 By convention, with just `prefix` set the card expects:
 
@@ -68,3 +67,16 @@ prefix: bathroom_washing_machine
 entities:
   progress: sensor.some_other_progress_sensor
 ```
+
+## Development
+
+The source is split into modules under `src/`. HACS downloads only the single file
+`miele-appliance-card.js`, so that file is a generated bundle committed to the repo. After changing
+anything in `src/`, run:
+
+```
+npm install   # once
+npm run build
+```
+
+and commit the regenerated `miele-appliance-card.js` together with your changes.
