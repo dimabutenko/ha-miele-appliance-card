@@ -10,7 +10,7 @@ real appliance's own front panel instead of a generic "smart card" look:
 - A gauge-style progress arc around the door (open 7 o'clock to 5 o'clock), colored per program
   phase, keeping a colored history of each phase instead of repainting it.
 - An LCD-style screen showing the translated program phase and a digital countdown clock.
-- A power indicator, wifi/door/fault status dots.
+- A power indicator, wifi/door/fault status dots, each with a hover tooltip.
 
 ## Installation
 
@@ -20,20 +20,29 @@ Settings → Marketplace → Dashboards → ⋮ → *Add from link* → paste th
 
 ### Manual
 
-1. Copy `miele-appliance-card.js` to `/config/www/community/miele-appliance-card/`.
+1. Copy `miele-appliance-card.js` **and the whole `src/` folder** to `/config/www/community/miele-appliance-card/`
+   (the card is split into ES modules).
 2. Add it as a Lovelace resource (Settings → Dashboards → ⋮ → Resources → Add resource):
    `/local/community/miele-appliance-card/miele-appliance-card.js`, type *JavaScript Module*.
 
 ## Configuration
 
-The card has a UI editor (name, appliance, prefix, and per-entity overrides). For YAML:
+The card has a UI editor (appliance, prefix, language, and per-entity overrides). For YAML:
 
 ```yaml
 type: custom:miele-appliance-card
 appliance: washer # or dryer
 prefix: bathroom_washing_machine # entity_id prefix shared by the device's entities
-name: Стиральная машина # optional
+language: en # optional: en | ru. Default: follows the Home Assistant language, falls back to en
 ```
+
+The card has no title and no visible container — the appliance itself is the card. Hover the
+indicator dots in the control strip (Wi-Fi, door, fault, power) to see what each one means.
+
+### Translations
+
+All user-facing text lives in `src/i18n/` (`en.js` is the default, `ru.js` is Russian). To add a
+language, copy `en.js` to e.g. `de.js`, translate the values, and register it in `src/i18n/index.js`.
 
 By convention, with just `prefix` set the card expects:
 
