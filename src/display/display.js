@@ -1,19 +1,30 @@
 import { phaseLabel } from "../i18n/index.js";
 import { lcdPhaseColor } from "../phase.js";
 import {
-  LCD, text, numWidth, timeMarkup, formatMinutes, withTip,
+  LCD, text, numWidth, timeMarkup, formatMinutes, withTip, scaled,
   wifi, bell, smartGrid, phone, warn,
   spinIcon, thermometer, stopwatch, flag, pill,
 } from "./lcd.js";
 
-// Where things sit on the screen (card coordinates; the screen is x 32..194, y 4..34).
-const X_LEFT = 38; // left edge of text and chips
-const X_TIME = 170.5; // right edge of the big time
-const Y_LABEL = 14, Y_CHIPS = 28.4, Y_SUB = 32;
-const WIFI_X = 180.2, FLAG_X = 189;
+// Where things sit on the screen (card coordinates; the screen is x 32..194, y 5..45).
+const L = {
+  left: 38, // left edge of text and chips
+  timeX: 170.5, // right edge of the big time
+  label: { y: 17.6, size: 6.2 },
+  time: { y: 29.4, size: 22 },
+  chips: { y: 35.4, size: 8.6 }, // baseline of the spin / temperature numbers
+  sub: { y: 41.6, size: 5.6, iconY: 36.4 }, // elapsed / finish line
+  grid: { wifiX: 180.2, flagX: 189, wifiY: 18.4, bellY: 13.8, sgY: 33.8, phoneY: 29.4 },
+};
 
 // Statuses where the machine is effectively switched off: the screen goes dark.
 const OFF_STATUSES = new Set(["off", "not_connected"]);
+
+// True when the machine is switched off or in deep standby. The LCD is dark
+// then, and the power button is red.
+export function isPoweredOff(s) {
+  return OFF_STATUSES.has(s.status) || s.standbyState === "deep_standby";
+}
 
 // Abstract LCD. It owns everything the washer and the dryer screens share —
 // the status line, the big time, elapsed/finish, Wi-Fi, the status icons — and
@@ -42,7 +53,7 @@ export class Display {
   // What to show for this state: the status line, the big time and how it ticks.
   describe(s) {
     const t = this.t;
-    if (OFF_STATUSES.has(s.status) || s.standbyState === "deep_standby") return { standby: true };
+    if (isPoweredOff(s)) return { standby: true };
 
     const d = { label: "", color: LCD.white, time: null, timeColor: LCD.white, error: false, showSub: true };
     const phase = phaseLabel(t, s.phase);
@@ -103,73 +114,76 @@ export class Display {
     if (d.standby) return "";
 
     let o = "";
-    let x = X_LEFT;
+    let x = L.left;
     if (d.error) {
-      o += warn(41, 11.5, tip("fault"));
-      x = 47;
+      o += warn(41.5, L.label.y - 3, tip("fault"));
+      x = 49;
     }
-    o += text(x, Y_LABEL, d.label, 5.2, d.color);
+    o += text(x, L.label.y, d.label, L.label.size, d.color);
     const program = this._programLabel(s.programType);
-    if (program && !d.error) o += pill(x + d.label.length * 3.2 + 3, 13.6, program, LCD.cyan).svg;
+    if (program && !d.error) o += pill(x + d.label.length * L.label.size * 0.6 + 3.5, L.label.y - 0.4, program, LCD.cyan, 3.3).svg;
 
     if (!d.error) o += this._chips(this.params(s));
 
     const min = this._minutes(d.time);
-    o += `<text id="lcd-time" class="lcd-num" x="${X_TIME}" y="22.4" font-size="18" font-weight="600" fill="${d.timeColor}" text-anchor="end">${
+    o += `<text id="lcd-time" class="lcd-num" x="${L.timeX}" y="${L.time.y}" font-size="${L.time.size}" font-weight="600" fill="${d.timeColor}" text-anchor="end">${
       min == null ? "" : timeMarkup(min, d.timeColor, d.time && d.time.ms != null)
     }</text>`;
     this._lastMin = min;
 
     if (d.showSub) o += this._sub(s);
 
-    o += wifi(WIFI_X, 14.2, this._wifiBars(s.wifi), s.wifi == null ? tip("wifi_unknown") : `${tip("wifi")}: ${s.wifi}${s.wifiUnit ? ` ${s.wifiUnit}` : ""}`);
-    o += bell(FLAG_X, 11.6, s.notification, tip("notification"));
-    o += smartGrid(WIFI_X, 26.2, s.smartGrid, tip("smart_grid"));
-    o += phone(FLAG_X, 22.4, s.mobileStart, tip("mobile_start"));
+    const g = L.grid;
+    o += wifi(g.wifiX, g.wifiY, this._wifiBars(s.wifi), s.wifi == null ? tip("wifi_unknown") : `${tip("wifi")}: ${s.wifi}${s.wifiUnit ? ` ${s.wifiUnit}` : ""}`);
+    o += bell(g.flagX, g.bellY, s.notification, tip("notification"));
+    o += smartGrid(g.wifiX, g.sgY, s.smartGrid, tip("smart_grid"));
+    o += phone(g.flagX, g.phoneY, s.mobileStart, tip("mobile_start"));
     return o;
   }
 
   _chips(params) {
-    let o = "", x = X_LEFT;
+    const { y, size } = L.chips;
+    let o = "", x = L.left;
     for (const p of params) {
       if (p.kind === "tag") {
-        o += withTip(text(x, Y_CHIPS + 0.3, p.value, 3.4, LCD.lilac), p.tip, [x - 1, Y_CHIPS - 5, p.value.length * 2.1 + 3, 8]);
-        x += p.value.length * 2.1 + 5;
+        const w = p.value.length * 2.4;
+        o += withTip(text(x, y, p.value, 3.9, LCD.lilac), p.tip, [x - 1, y - 6, w + 3, 9]);
+        x += w + 5;
         continue;
       }
-      const icon = p.kind === "spin" ? spinIcon(x, 22.4) : thermometer(x, 22.2);
-      const off = p.kind === "spin" ? 7 : 6;
-      const color = p.kind === "spin" ? LCD.violet : LCD.orange;
-      const w = numWidth(p.value, 7.6);
+      const spin = p.kind === "spin";
+      const icon = spin ? scaled(spinIcon(x, y - 6.4), x, y - 6.4, 1.2) : scaled(thermometer(x, y - 6.6), x, y - 6.6, 1.15);
+      const off = spin ? 8 : 6.8;
+      const w = numWidth(p.value, size);
       o += withTip(
-        icon + text(x + off, Y_CHIPS, p.value, 7.6, color, { kind: "num", weight: 600 }) + text((x + off + w + 0.8).toFixed(2), Y_CHIPS, p.unit, 2.8, LCD.grey, { weight: 600 }),
+        icon + text(x + off, y, p.value, size, spin ? LCD.violet : LCD.orange, { kind: "num", weight: 600 }) + text((x + off + w + 0.8).toFixed(2), y, p.unit, 3.1, LCD.grey, { weight: 600 }),
         p.tip,
-        [x - 1, Y_CHIPS - 7, off + w + 8, 9.5]
+        [x - 1, y - 8, off + w + 9, 11]
       );
-      x += off + w + (p.kind === "spin" ? 10 : 7);
+      x += off + w + (spin ? 11 : 8);
     }
     return o;
   }
 
   // The small line under the time: elapsed on the left, finish time on the right.
   _sub(s) {
-    const t = this.t;
+    const t = this.t, { y, size, iconY } = L.sub;
     let o = "";
     if (s.elapsed != null) {
       const str = formatMinutes(s.elapsed);
       o += withTip(
-        stopwatch(123, 27.4) + text(129.5, Y_SUB, str, 5, LCD.grey, { kind: "num", weight: 600 }),
+        stopwatch(123, iconY) + text(130, y, str, size, LCD.grey, { kind: "num", weight: 600 }),
         t("tooltips.elapsed"),
-        [122, 26.5, 8 + numWidth(str, 5), 7.5]
+        [122, iconY - 1, 9 + numWidth(str, size), 8]
       );
     }
     if (s.finishMs != null && s.status !== "program_ended") {
       const str = new Date(s.finishMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
-      const w = numWidth(str, 5);
+      const w = numWidth(str, size);
       o += withTip(
-        flag(X_TIME - w - 5.6, 27.4) + text(X_TIME, Y_SUB, str, 5, LCD.green, { kind: "num", weight: 600, anchor: "end" }),
+        flag(L.timeX - w - 6, iconY) + text(L.timeX, y, str, size, LCD.green, { kind: "num", weight: 600, anchor: "end" }),
         t("tooltips.finish"),
-        [X_TIME - w - 6.5, 26.5, w + 7, 7.5]
+        [L.timeX - w - 7, iconY - 1, w + 8, 8]
       );
     }
     return o;

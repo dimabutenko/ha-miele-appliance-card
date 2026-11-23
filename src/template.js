@@ -5,7 +5,7 @@ import {
   SCR_X, SCR_Y, SCR_W, SCR_H,
   GRILLE_X0, GRILLE_X1, GRILLE_Y0, GRILLE_LINES, GRILLE_GAP,
   INDICATOR_Y, INDICATORS,
-  CROSS_D, CROSS_ARM_ANGLES, CROSS_ARM_W, CROSS_ARM_L, CROSS_HUB_R, POOL_D, POOL_SURFACE_Y, SPLASHES,
+  CROSS_D, CROSS_ARM_ANGLES, CROSS_ARM_W, CROSS_ARM_L, CROSS_HUB_R, POOL_D, POOL_SURFACE_Y, SPLASHES, STEAM,
 } from "./geometry.js";
 import { STYLES } from "./styles.js";
 import { openingDefs, openingMarkup, doorMarkup } from "./door.js";
@@ -24,7 +24,16 @@ function indicator(id, cx, { ring = false } = {}) {
     </g>`;
 }
 
-export function buildTemplate({ hinge = "left" } = {}) {
+// The dryer's vent grille, lower right. A washer front has none.
+function grilleMarkup() {
+  return `
+            <rect class="grille-frame" x="${GRILLE_X0 - 3}" y="${GRILLE_Y0 - 3}" width="${GRILLE_X1 - GRILLE_X0 + 6}" height="${(GRILLE_LINES - 1) * GRILLE_GAP + 6}" rx="2"/>
+            ${Array.from({ length: GRILLE_LINES }, (_, i) =>
+              `<line class="vent" x1="${GRILLE_X0}" y1="${GRILLE_Y0 + i * GRILLE_GAP}" x2="${GRILLE_X1}" y2="${GRILLE_Y0 + i * GRILLE_GAP}"/>`
+            ).join("")}`;
+}
+
+export function buildTemplate({ hinge = "left", grille = false } = {}) {
   return `
     <style>${STYLES}</style>
     <ha-card>
@@ -49,6 +58,11 @@ export function buildTemplate({ hinge = "left" } = {}) {
               <linearGradient id="lcdGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0" stop-color="#0b1220"/><stop offset="1" stop-color="#060a12"/>
               </linearGradient>
+              <radialGradient id="steamGrad" cx="50%" cy="50%" r="50%">
+                <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
+                <stop offset="0.5" stop-color="#eef6fb" stop-opacity="0.6"/>
+                <stop offset="1" stop-color="#eef6fb" stop-opacity="0"/>
+              </radialGradient>
               <linearGradient id="crossGrad" x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0%" stop-color="#e3e9ec"/>
                 <stop offset="100%" stop-color="#9aa4ab"/>
@@ -92,11 +106,6 @@ export function buildTemplate({ hinge = "left" } = {}) {
             <g id="ring-fill"></g>
             ${openingMarkup()}
             <circle class="rim closed-only" cx="${DOOR_CX}" cy="${DOOR_CY}" r="${DOOR_R}"/>
-            <g class="drum" id="drum">
-              <circle cx="${DOOR_CX}" cy="${DOOR_CY}" r="58" fill="none" stroke="#343a42" stroke-width="1" opacity="0.5"/>
-              <circle cx="${DOOR_CX}" cy="${DOOR_CY}" r="40" fill="none" stroke="#343a42" stroke-width="1" opacity="0.4"/>
-              <circle cx="${DOOR_CX}" cy="${DOOR_CY}" r="22" fill="none" stroke="#343a42" stroke-width="1" opacity="0.35"/>
-            </g>
             <g class="crosspiece" id="crosspiece" clip-path="url(#waterClip)">
               <path class="cross-wall" d="${CROSS_D}"/>
               <path class="cross-face" d="${CROSS_D}"/>
@@ -126,11 +135,15 @@ export function buildTemplate({ hinge = "left" } = {}) {
             </g>
             <circle class="glass-tint closed-only" cx="${DOOR_CX}" cy="${DOOR_CY}" r="${WATER_R}"/>
             <circle class="glass-shine closed-only" cx="${DOOR_CX}" cy="${DOOR_CY}" r="${WATER_R}"/>
+            <g class="steam" id="steam" clip-path="url(#waterClip)" opacity="0">
+              ${STEAM.map(
+                (p) => `
+              <circle class="steam-puff" cx="${DOOR_CX + p.x}" cy="${DOOR_CY + p.y}" r="${p.r}" fill="url(#steamGrad)"
+                      style="--sx:${p.drift}px;--dur:${p.dur}s;--delay:${p.delay}s;"/>`
+              ).join("")}
+            </g>
             ${doorMarkup(hinge)}
-            <rect class="grille-frame" x="${GRILLE_X0 - 3}" y="${GRILLE_Y0 - 3}" width="${GRILLE_X1 - GRILLE_X0 + 6}" height="${(GRILLE_LINES - 1) * GRILLE_GAP + 6}" rx="2"/>
-            ${Array.from({ length: GRILLE_LINES }, (_, i) =>
-              `<line class="vent" x1="${GRILLE_X0}" y1="${GRILLE_Y0 + i * GRILLE_GAP}" x2="${GRILLE_X1}" y2="${GRILLE_Y0 + i * GRILLE_GAP}"/>`
-            ).join("")}
+            ${grille ? grilleMarkup() : ""}
           </svg>
         </div>
       </div>

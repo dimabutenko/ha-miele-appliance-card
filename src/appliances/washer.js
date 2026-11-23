@@ -10,15 +10,15 @@ export class Washer extends Appliance {
     return new WasherDisplay(t);
   }
 
-  // The crosspiece itself stands in for the drum: it turns slowly under the
-  // water while washing, then fast and bare once spin kicks the water out.
+  // The crosspiece turns slowly under the water while washing, then fast and
+  // bare once spin kicks the water out.
   drumView({ running, doorOpen, phase }) {
     const turning = running && !doorOpen; // an open door means nothing turns
     const spinPhase = /spin|drain/.test((phase || "").toLowerCase());
     return {
       water: turning && !spinPhase,
-      crosspiece: { visible: true, spin: turning, fast: turning && spinPhase },
-      drum: { visible: false, spin: false, tumble: false },
+      steam: false,
+      crosspiece: { spin: turning, fast: turning && spinPhase },
     };
   }
 

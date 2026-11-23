@@ -26,13 +26,18 @@ export const STYLES = `
   .rim { fill: url(#doorGrad); stroke: #9aa0a6; stroke-width: 3; }
   .ring-track { fill: none; stroke-width: 6; stroke-linecap: round; opacity: 0.3; transition: stroke 0.4s ease; }
   .ring-seg { fill: none; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease, stroke-dasharray 0.6s ease; }
-  .drum { transform-origin: center; transform-box: fill-box; transition: opacity 0.5s ease; }
-  .drum.spin { animation: spin 2.4s linear infinite; }
-  .drum.spin.dryer { animation: tumble 2.8s ease-in-out infinite; }
-  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-  @keyframes tumble { 0% { transform: rotate(0deg); } 50% { transform: rotate(190deg); } 100% { transform: rotate(360deg); } }
   @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.15; } }
-  .water { transition: opacity 0.5s ease; }
+  .water, .steam { transition: opacity 0.6s ease; }
+  .steam-puff {
+    transform-origin: center; transform-box: fill-box; opacity: 0;
+    animation: steam var(--dur) ease-in-out infinite; animation-delay: var(--delay);
+  }
+  @keyframes steam {
+    0% { opacity: 0; transform: translate(0, 0) scale(0.6); }
+    25% { opacity: 0.95; }
+    60% { opacity: 0.7; transform: translate(var(--sx), -34px) scale(1.15); }
+    100% { opacity: 0; transform: translate(calc(var(--sx) * 1.6), -66px) scale(1.7); }
+  }
   /* Explicit pixel transform-origin (not fill-box) — the ribs are asymmetric per
      copy, so a bounding-box-derived pivot drifts off the true drum centre. */
   .crosspiece {

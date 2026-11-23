@@ -49,7 +49,12 @@ export class Appliance {
     throw new Error("Appliance.createDisplay() must be implemented");
   }
 
-  // How the drum area should look: { water, crosspiece: {visible, spin, fast}, drum: {visible, spin, tumble} }.
+  // Whether the front has a vent grille (a dryer does, a washer does not).
+  get hasGrille() {
+    return false;
+  }
+
+  // How the drum area should look: { water, steam, crosspiece: {spin, fast} }.
   drumView() {
     throw new Error("Appliance.drumView() must be implemented");
   }

@@ -38,6 +38,11 @@ export function timeMarkup(min, color, blink) {
   return `<tspan>${h}</tspan><tspan class="lcd-colon${blink ? " blink" : ""}">:</tspan><tspan>${mm}</tspan>`;
 }
 
+// Scale an icon about its own origin point.
+export function scaled(svg, x, y, k) {
+  return `<g transform="translate(${x} ${y}) scale(${k}) translate(${-x} ${-y})">${svg}</g>`;
+}
+
 // Wrap an icon with a transparent hit area and a <title> tooltip.
 export function withTip(inner, tip, box) {
   return `<g>${inner}<rect class="hit" x="${box[0]}" y="${box[1]}" width="${box[2]}" height="${box[3]}"/><title>${esc(tip)}</title></g>`;
@@ -95,12 +100,12 @@ export function flag(x, y) {
 }
 
 // Small outlined tag, e.g. the program type. The text is centred in the pill.
-export function pill(x, baselineY, s, color) {
-  const size = 2.9, w = s.length * size * 0.6 + 3.6, h = 4.8, cy = baselineY - 1.1;
+export function pill(x, baselineY, s, color, size = 2.9) {
+  const w = s.length * size * 0.6 + 3.6, h = size * 1.65, cy = baselineY - size * 0.38;
   return {
     width: w,
     svg:
-      `<rect x="${x}" y="${(cy - h / 2).toFixed(2)}" width="${w.toFixed(2)}" height="${h}" rx="${h / 2}" fill="none" stroke="${color}" stroke-width=".6"/>` +
+      `<rect x="${x}" y="${(cy - h / 2).toFixed(2)}" width="${w.toFixed(2)}" height="${h}" rx="${h / 2}" fill="none" stroke="${color}" stroke-width=".65"/>` +
       text(+(x + w / 2).toFixed(2), +(cy + size * 0.35).toFixed(2), s, size, color, { anchor: "middle" }),
   };
 }

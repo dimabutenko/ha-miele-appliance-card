@@ -6,16 +6,22 @@ export class Dryer extends Appliance {
     return [{ name: "drying_step", domain: "sensor", suffix: "drying_step" }];
   }
 
+  get hasGrille() {
+    return true;
+  }
+
   createDisplay(t) {
     return new DryerDisplay(t);
   }
 
-  // No crosspiece, no water: just the plain drum tumbling back and forth.
+  // The same crosspiece drum as the washer, but dry: no water, and steam rises
+  // out of the load while it dries.
   drumView({ running, doorOpen }) {
+    const turning = running && !doorOpen;
     return {
       water: false,
-      crosspiece: { visible: false, spin: false, fast: false },
-      drum: { visible: !doorOpen, spin: running && !doorOpen, tumble: true },
+      steam: turning,
+      crosspiece: { spin: turning, fast: false },
     };
   }
 

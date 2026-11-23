@@ -1,6 +1,7 @@
 import { RING_D, RING_ARC_LEN } from "./geometry.js";
 import { buildTemplate } from "./template.js";
 import { phaseColor } from "./phase.js";
+import { isPoweredOff } from "./display/display.js";
 import { createAppliance } from "./appliances/index.js";
 import { resolveLanguage, makeTranslator } from "./i18n/index.js";
 
@@ -75,7 +76,7 @@ export class MieleApplianceCard extends HTMLElement {
 
   _build() {
     const root = this.shadowRoot || this.attachShadow({ mode: "open" });
-    root.innerHTML = buildTemplate({ hinge: this._config.hinge });
+    root.innerHTML = buildTemplate({ hinge: this._config.hinge, grille: this._appliance.hasGrille });
     this._root = root;
     this._built = true;
     this._segments = [];
@@ -206,14 +207,10 @@ export class MieleApplianceCard extends HTMLElement {
     // Drum, crosspiece and water follow the appliance's own behaviour.
     const view = this._appliance.drumView(s);
     root.getElementById("water").style.opacity = view.water ? "1" : "0";
+    root.getElementById("steam").style.opacity = view.steam ? "1" : "0";
     const crosspiece = root.getElementById("crosspiece");
-    crosspiece.style.opacity = view.crosspiece.visible ? "1" : "0";
     crosspiece.classList.toggle("spin", view.crosspiece.spin);
     crosspiece.classList.toggle("fast", view.crosspiece.fast);
-    const drum = root.getElementById("drum");
-    drum.style.opacity = view.drum.visible ? "1" : "0";
-    drum.classList.toggle("spin", view.drum.spin);
-    drum.classList.toggle("dryer", view.drum.tumble);
 
     // Progress ring.
     const pct = s.progress === null ? null : Math.max(0, Math.min(100, s.progress));
@@ -239,11 +236,15 @@ export class MieleApplianceCard extends HTMLElement {
     }
     this._renderSegments();
 
-    // The LCD, and the power button.
+    // The LCD, and the power button: green while the machine is on, red while it is off.
     this._display.update(s);
-    root.getElementById("ind-power").style.stroke = s.running
-      ? "var(--success-color, #4caf50)"
-      : "var(--error-color, #e05555)";
-    this._setTip("power", `${t("tooltips.power")}: ${s.running ? t("tooltips.power_running") : t("tooltips.power_idle")}`);
+    const off = isPoweredOff(s);
+    root.getElementById("ind-power").style.stroke = off
+      ? "var(--error-color, #e05555)"
+      : "var(--success-color, #4caf50)";
+    this._setTip(
+      "power",
+      `${t("tooltips.power")}: ${off ? t("tooltips.power_off") : s.running ? t("tooltips.power_running") : t("tooltips.power_on")}`
+    );
   }
 }

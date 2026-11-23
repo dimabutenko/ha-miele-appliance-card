@@ -2,7 +2,7 @@
 
 export const BODY_X = 2, BODY_Y = 2, BODY_W = 196, BODY_H = 296;
 export const BODY_RX = 6;
-export const BAR_H = 34; // dark control strip, flush with the top of the body
+export const BAR_H = 46; // dark control strip, flush with the top of the body
 export const DOOR_CX = 100, DOOR_CY = 155;
 export const DOOR_R = 82; // metal rim
 export const RING_R = 90; // progress gauge, outside the rim
@@ -24,13 +24,13 @@ export const RING_D = `M ${RING_X0.toFixed(2)} ${RING_Y0.toFixed(2)} A ${RING_R}
 export const BAR_D = `M ${BODY_X + BODY_RX} ${BODY_Y} L ${BODY_X + BODY_W - BODY_RX} ${BODY_Y} A ${BODY_RX} ${BODY_RX} 0 0 1 ${BODY_X + BODY_W} ${BODY_Y + BODY_RX} L ${BODY_X + BODY_W} ${BODY_Y + BAR_H} L ${BODY_X} ${BODY_Y + BAR_H} L ${BODY_X} ${BODY_Y + BODY_RX} A ${BODY_RX} ${BODY_RX} 0 0 1 ${BODY_X + BODY_RX} ${BODY_Y} Z`;
 
 // Screen rect, inside the top bar.
-export const SCR_X = 32, SCR_Y = 4, SCR_W = 162, SCR_H = 30; // equal 2-unit margin above and below, within BAR_H
+export const SCR_X = 32, SCR_Y = 5, SCR_W = 162, SCR_H = 40; // equal 2-unit margin above and below, within BAR_H
 
 // Vent grille, lower-right of the body.
 export const GRILLE_X0 = 118, GRILLE_X1 = 184, GRILLE_Y0 = 248, GRILLE_LINES = 9, GRILLE_GAP = 5;
 
 // Status indicators in the control bar (left to right).
-export const INDICATOR_Y = 19;
+export const INDICATOR_Y = 25; // vertical centre of the control strip
 export const INDICATORS = {
   power: 18, // the power button, at the far left; the screen takes all the rest
 };
@@ -108,4 +108,16 @@ export const SPLASHES = [
   { dx: 9, dy: -26, delay: 0.1, dur: SPLASH_PERIOD, size: 1.4 },
   { dx: 16, dy: -20, delay: 0.14, dur: SPLASH_PERIOD, size: 1.8 },
   { dx: -2, dy: -18, delay: 0.18, dur: SPLASH_PERIOD, size: 1.3 },
+];
+
+// Steam rising inside the dryer's drum while it dries: soft puffs that drift up,
+// swell and fade, out of step with each other. `x`/`y` are offsets from the drum centre.
+export const STEAM = [
+  { x: -28, y: 38, r: 15, drift: -7, dur: 4.2, delay: 0 },
+  { x: -8, y: 44, r: 18, drift: 6, dur: 5.0, delay: 1.1 },
+  { x: 14, y: 40, r: 14, drift: -5, dur: 4.6, delay: 2.3 },
+  { x: 30, y: 36, r: 16, drift: 8, dur: 5.4, delay: 0.6 },
+  { x: -18, y: 32, r: 13, drift: 5, dur: 3.8, delay: 3.0 },
+  { x: 4, y: 28, r: 19, drift: -8, dur: 5.8, delay: 1.9 },
+  { x: 22, y: 46, r: 13, drift: 4, dur: 4.0, delay: 3.4 },
 ];

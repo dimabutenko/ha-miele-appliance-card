@@ -19,14 +19,38 @@ visible container: the appliance itself is the card. No brand marks, shapes only
 ## Features
 
 - **Washer and dryer** from the same card (`appliance: washer | dryer`), each with its own drum behaviour and its own LCD.
-- **Animated drum.** A rotating three-armed crosspiece under a settling, splashing water pool while washing, the
-  same crosspiece spinning fast and bare during spin, a plain tumbling drum for the dryer.
+- **Animated drum.** The same three-armed crosspiece in both appliances. The washer turns it slowly under a
+  settling, splashing water pool, then fast and bare during spin. The dryer turns it dry, with steam rising
+  from the load. The washer front has no vent grille; the dryer does.
+- **Real program flow.** Water, steam, rotation speed, the colour of the progress arc and the LCD all follow the
+  appliance's phase, and everything stops as soon as the door opens.
 - **A door that really opens.** When the door sensor reports open, the door swings out (hinge left or right) with
   its deep glass bowl, and you look into the drum. Nothing turns while it is open.
 - **Progress arc** around the door, coloured per program phase, keeping a coloured history of each phase.
 - **Colour LCD** with the status line, a big time, elapsed and finish time, spin speed, temperature, program
   type and status icons. Hover any icon for a tooltip.
 - **Translations** (English by default, Russian included) in plain files that are easy to extend.
+
+## Animations
+
+These are recordings of the real card running a whole program on a fake clock (10 simulated minutes per second),
+so the countdown moves. This is what you will see on your dashboard.
+
+| Washer: door open → close → wash → rinse → spin → finished → door open | Dryer: door open → close → drying with steam → finished → door open |
+|:---:|:---:|
+| <img src="https://raw.githubusercontent.com/dimabutenko/ha-miele-appliance-card/master/images/animations/washer-cycle.webp" width="300" alt="Washer cycle animation"> | <img src="https://raw.githubusercontent.com/dimabutenko/ha-miele-appliance-card/master/images/animations/dryer-cycle.webp" width="300" alt="Dryer cycle animation"> |
+
+What moves, and when:
+
+| Animation | When |
+|---|---|
+| Crosspiece turns slowly, water slops and splashes | Washer, any phase except spin and drain |
+| Crosspiece spins fast, no water | Washer, spin and drain |
+| Crosspiece turns, steam rises and fades | Dryer, while running |
+| Progress arc fills, each phase in its own colour | Whenever a program has progress |
+| Door swings open or closed, drum area switches to the inside of the drum | The door sensor changes |
+| Colon in the time blinks, the time counts down on its own | While running, driven by `finish_time` |
+| Everything in the drum stops | Door open, or the machine is not running |
 
 ## Screenshots
 
@@ -122,8 +146,8 @@ entities:
 | Phone | Mobile start enabled (the appliance can be started from the Miele app) |
 | Red `Error` | The appliance reports a failure |
 
-The LCD is dark while the machine is switched off or in deep standby. The power button on the left is green while a
-program runs and red otherwise.
+The LCD is dark while the machine is switched off or in deep standby. The power button on the left is green while the
+machine is on (idle, running, paused, finished ...) and red while it is off.
 
 ### Translations
 

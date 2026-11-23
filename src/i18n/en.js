@@ -19,7 +19,8 @@ export default {
     wifi_unknown: "Wi-Fi signal: no data",
     power: "Power",
     power_running: "Running",
-    power_idle: "Idle",
+    power_on: "On",
+    power_off: "Off",
   },
   // Machine status (the `status` sensor) when no program phase applies.
   statuses: {

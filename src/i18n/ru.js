@@ -17,7 +17,8 @@ export default {
     wifi_unknown: "Сигнал Wi-Fi: нет данных",
     power: "Питание",
     power_running: "Работает",
-    power_idle: "Простой",
+    power_on: "Включена",
+    power_off: "Выключена",
   },
   // Статус машины (сенсор `status`), когда фазы программы нет.
   statuses: {
