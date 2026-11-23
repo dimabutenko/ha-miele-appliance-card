@@ -5,7 +5,7 @@ import {
   SCR_X, SCR_Y, SCR_W, SCR_H,
   GRILLE_X0, GRILLE_X1, GRILLE_Y0, GRILLE_LINES, GRILLE_GAP,
   INDICATOR_Y, INDICATORS,
-  RIB_D, PANEL_HOLES, POOL_D, POOL_SURFACE_Y, SPLASHES,
+  CROSS_D, CROSS_ARM_ANGLES, CROSS_ARM_W, CROSS_ARM_L, CROSS_HUB_R, POOL_D, POOL_SURFACE_Y, SPLASHES,
 } from "./geometry.js";
 import { STYLES } from "./styles.js";
 
@@ -45,6 +45,28 @@ export function buildTemplate() {
                 <stop offset="60%" stop-color="#184a5c"/>
                 <stop offset="100%" stop-color="#0d2b36"/>
               </radialGradient>
+              <linearGradient id="crossGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#e3e9ec"/>
+                <stop offset="100%" stop-color="#9aa4ab"/>
+              </linearGradient>
+              <!-- Across-the-arm shading: a rounded ridge down the middle, dark flanks. -->
+              <linearGradient id="ridgeGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#10151a" stop-opacity="0.5"/>
+                <stop offset="30%" stop-color="#10151a" stop-opacity="0.05"/>
+                <stop offset="50%" stop-color="#ffffff" stop-opacity="0.5"/>
+                <stop offset="70%" stop-color="#10151a" stop-opacity="0.05"/>
+                <stop offset="100%" stop-color="#10151a" stop-opacity="0.5"/>
+              </linearGradient>
+              <radialGradient id="hubGrad" cx="38%" cy="32%" r="75%">
+                <stop offset="0%" stop-color="#f6f9fa"/>
+                <stop offset="55%" stop-color="#aab3b9"/>
+                <stop offset="100%" stop-color="#5f6a71"/>
+              </radialGradient>
+              <linearGradient id="shineGrad" x1="0" y1="0" x2="0.7" y2="1">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"/>
+                <stop offset="45%" stop-color="#ffffff" stop-opacity="0"/>
+              </linearGradient>
+              <clipPath id="crossClip"><path d="${CROSS_D}"/></clipPath>
               <clipPath id="waterClip"><circle cx="${DOOR_CX}" cy="${DOOR_CY}" r="${WATER_R}"/></clipPath>
             </defs>
             <rect class="body" x="${BODY_X}" y="${BODY_Y}" width="${BODY_W}" height="${BODY_H}" rx="${BODY_RX}"/>
@@ -64,16 +86,19 @@ export function buildTemplate() {
               <circle cx="${DOOR_CX}" cy="${DOOR_CY}" r="22" fill="none" stroke="#343a42" stroke-width="1" opacity="0.35"/>
             </g>
             <g class="crosspiece" id="crosspiece" clip-path="url(#waterClip)">
-              ${[0, 120, 240]
-                .map(
+              <path class="cross-wall" d="${CROSS_D}"/>
+              <path class="cross-face" d="${CROSS_D}"/>
+              <g clip-path="url(#crossClip)">
+                ${CROSS_ARM_ANGLES.map(
                   (deg) => `
-              <g transform="rotate(${deg} ${DOOR_CX} ${DOOR_CY})">
-                ${PANEL_HOLES.map((p) => `<circle class="panel-hole" cx="${p[0].toFixed(2)}" cy="${p[1].toFixed(2)}" r="1.1"/>`).join("")}
+                <rect x="${DOOR_CX - CROSS_ARM_W / 2}" y="${DOOR_CY - CROSS_ARM_L}" width="${CROSS_ARM_W}" height="${CROSS_ARM_L}"
+                      fill="url(#ridgeGrad)" transform="rotate(${deg} ${DOOR_CX} ${DOOR_CY})"/>`
+                ).join("")}
+                <path class="cross-bevel" d="${CROSS_D}"/>
               </g>
-              <path class="rib" d="${RIB_D}" transform="rotate(${deg} ${DOOR_CX} ${DOOR_CY})"/>`
-                )
-                .join("")}
-              <circle class="rib-hub" cx="${DOOR_CX}" cy="${DOOR_CY}" r="7"/>
+              <path class="cross-edge" d="${CROSS_D}"/>
+              <circle class="cross-hub" cx="${DOOR_CX}" cy="${DOOR_CY}" r="${CROSS_HUB_R}"/>
+              <circle cx="${DOOR_CX}" cy="${DOOR_CY}" r="3" fill="#4a535a"/>
             </g>
             <g class="water" id="water" clip-path="url(#waterClip)" opacity="0">
               <path class="pool" d="${POOL_D}">
@@ -88,6 +113,7 @@ export function buildTemplate() {
               ).join("")}
             </g>
             <circle class="glass-tint" cx="${DOOR_CX}" cy="${DOOR_CY}" r="${WATER_R}"/>
+            <circle class="glass-shine" cx="${DOOR_CX}" cy="${DOOR_CY}" r="${WATER_R}"/>
             <rect class="grille-frame" x="${GRILLE_X0 - 3}" y="${GRILLE_Y0 - 3}" width="${GRILLE_X1 - GRILLE_X0 + 6}" height="${(GRILLE_LINES - 1) * GRILLE_GAP + 6}" rx="2"/>
             ${Array.from({ length: GRILLE_LINES }, (_, i) =>
               `<line class="vent" x1="${GRILLE_X0}" y1="${GRILLE_Y0 + i * GRILLE_GAP}" x2="${GRILLE_X1}" y2="${GRILLE_Y0 + i * GRILLE_GAP}"/>`

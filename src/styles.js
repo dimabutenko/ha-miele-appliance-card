@@ -40,9 +40,11 @@ export const STYLES = `
   .crosspiece.spin { animation-play-state: running; }
   .crosspiece.spin.fast { animation-duration: 1.1s; }
   @keyframes crosspieceSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-  .rib { fill: #c3cbd0; opacity: 0.85; }
-  .rib-hub { fill: #c3cbd0; opacity: 0.85; }
-  .panel-hole { fill: #343b42; opacity: 0.6; }
+  .cross-wall { fill: #1b2025; stroke: #1b2025; stroke-width: 4.5; stroke-linejoin: round; opacity: 0.9; }
+  .cross-face { fill: url(#crossGrad); }
+  .cross-bevel { fill: none; stroke: #6f7a82; stroke-width: 3.2; stroke-linejoin: round; opacity: 0.75; }
+  .cross-edge { fill: none; stroke: #eef3f5; stroke-width: 0.8; stroke-linejoin: round; opacity: 0.7; }
+  .cross-hub { fill: url(#hubGrad); stroke: #3d454b; stroke-width: 0.8; }
   .pool { fill: url(#waterGrad); opacity: 0.78; stroke: #bfe8f5; stroke-width: 1; stroke-opacity: 0.45; }
   .splash {
     fill: #d6f1fb; transform-origin: center; transform-box: fill-box;
@@ -56,6 +58,7 @@ export const STYLES = `
     100% { opacity: 0; }
   }
   .glass-tint { fill: rgba(5, 9, 11, 0.45); }
+  .glass-shine { fill: url(#shineGrad); pointer-events: none; }
   .screen-text {
     position: absolute;
     left: ${(100 * SCR_X) / (BODY_W + 4)}%; top: ${(100 * SCR_Y) / (BODY_H + 4)}%;

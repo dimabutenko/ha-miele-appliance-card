@@ -41,39 +41,40 @@ export const INDICATORS = {
 // Water inside the drum glass, while a washer runs anything other than spin/drain.
 export const WATER_R = 58; // matches the largest concentric ring, so the two never show at once
 
-// This is the back wall of the drum, seen straight through the door — not a
-// separate paddle arm. Three curved, tapering ribs run from near the centre
-// hub out to near the rim, pinwheel-fashion; the panels between them are
-// perforated with drain holes, same as the real pattern. The whole thing is
-// one flat disc that simply rotates.
-function ribPetal() {
-  const p0 = [DOOR_CX, DOOR_CY];
-  const p1 = clockPoint(DOOR_CX, DOOR_CY, 54, 16);
-  const cOut = clockPoint(DOOR_CX, DOOR_CY, 38, 44);
-  const cIn = clockPoint(DOOR_CX, DOOR_CY, 24, -10);
-  const f = (p) => `${p[0].toFixed(2)} ${p[1].toFixed(2)}`;
-  return `M ${f(p0)} Q ${f(cOut)} ${f(p1)} Q ${f(cIn)} ${f(p0)} Z`;
-}
-export const RIB_D = ribPetal();
+// The drum's three-armed crosspiece (the "paddle cross"), seen straight through
+// the door: three wide, constant-width arms from a central hub, joined by smooth
+// concave fillets so the outline reads as one cast piece. The arms run past the
+// glass edge and are clipped to it. Panels between the arms are open.
+export const CROSS_ARM_ANGLES = [90, 210, 330]; // clock degrees
+export const CROSS_ARM_W = 18;
+export const CROSS_ARM_L = 62; // longer than WATER_R, clipped by the glass
+export const CROSS_FILLET_R = 30;
+export const CROSS_HUB_R = 11;
 
-// Drain holes, a few concentric arcs within each of the 3 panels between ribs
-// (panels are centred on local angle 60°, since ribs sit at 0/120/240).
-function panelHoles() {
-  const rings = [
-    { r: 20, count: 4, span: 46 },
-    { r: 32, count: 6, span: 54 },
-    { r: 44, count: 7, span: 58 },
-  ];
-  const pts = [];
-  for (const { r, count, span } of rings) {
-    for (let i = 0; i < count; i++) {
-      const deg = 60 - span / 2 + (span * i) / (count - 1);
-      pts.push(clockPoint(DOOR_CX, DOOR_CY, r, deg));
-    }
-  }
-  return pts;
+function crossPath() {
+  const w2 = CROSS_ARM_W / 2;
+  const r = CROSS_FILLET_R;
+  // Where the fillet circle touches an arm edge, measured along the arm.
+  const tan = ((w2 + r) / Math.sin(Math.PI / 3)) * Math.cos(Math.PI / 3);
+  const pt = (deg, along, across) => {
+    const rad = (deg * Math.PI) / 180;
+    const u = [Math.sin(rad), -Math.cos(rad)]; // along the arm
+    const n = [Math.cos(rad), Math.sin(rad)]; // 90° clockwise of the arm
+    return [DOOR_CX + along * u[0] + across * n[0], DOOR_CY + along * u[1] + across * n[1]];
+  };
+  const f = (q) => `${q[0].toFixed(2)} ${q[1].toFixed(2)}`;
+  const angles = CROSS_ARM_ANGLES;
+  let d = "";
+  angles.forEach((deg, i) => {
+    const next = angles[(i + 1) % angles.length];
+    const start = pt(deg, tan, -w2); // arrive from the previous valley on the counter-clockwise edge
+    d += i === 0 ? `M ${f(start)}` : ` A ${r} ${r} 0 0 0 ${f(start)}`;
+    d += ` L ${f(pt(deg, CROSS_ARM_L, -w2))} L ${f(pt(deg, CROSS_ARM_L, w2))} L ${f(pt(deg, tan, w2))}`;
+    if (i === angles.length - 1) d += ` A ${r} ${r} 0 0 0 ${f(pt(angles[0], tan, -w2))} Z`;
+  });
+  return d;
 }
-export const PANEL_HOLES = panelHoles();
+export const CROSS_D = crossPath();
 
 // The water itself does NOT spin with the drum — at wash speed it settles as
 // a pool at the bottom under gravity, roughly level, while the paddles (which
