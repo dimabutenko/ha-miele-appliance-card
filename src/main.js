@@ -1,7 +1,6 @@
 // Miele appliance card — washer/dryer styled after the real appliance's own
-// front panel. Entry point of the sources in src/. The installable single file
-// miele-appliance-card.js in the repo root is generated from this with `npm run build`
-// (HACS downloads only that one file). Modules:
+// front panel. Entry point of the sources in src/; `npm run build` bundles it into the
+// single miele-appliance-card.js, which CI attaches to each GitHub release (what HACS installs). Modules:
 //   card.js      the card element
 //   editor.js    the visual config editor
 //   template.js  SVG/HTML markup

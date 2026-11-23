@@ -1,6 +1,5 @@
 {
   "name": "Miele Appliance Card",
-  "content_in_root": true,
   "filename": "miele-appliance-card.js",
   "render_readme": true
 }

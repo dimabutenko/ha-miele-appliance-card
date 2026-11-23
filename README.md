@@ -20,7 +20,7 @@ Settings → Marketplace → Dashboards → ⋮ → *Add from link* → paste th
 
 ### Manual
 
-1. Copy `miele-appliance-card.js` to `/config/www/community/miele-appliance-card/`.
+1. Download `miele-appliance-card.js` from the latest [release](../../releases/latest) and copy it to `/config/www/community/miele-appliance-card/`.
 2. Add it as a Lovelace resource (Settings → Dashboards → ⋮ → Resources → Add resource):
    `/local/community/miele-appliance-card/miele-appliance-card.js`, type *JavaScript Module*.
 
@@ -41,7 +41,7 @@ indicator dots in the control strip (Wi-Fi, door, fault, power) to see what each
 ### Translations
 
 All user-facing text lives in `src/i18n/` (`en.js` is the default, `ru.js` is Russian). To add a
-language, copy `en.js` to e.g. `de.js`, translate the values, register it in `src/i18n/index.js` and run `npm run build`.
+language, copy `en.js` to e.g. `de.js`, translate the values, register it in `src/i18n/index.js`.
 
 By convention, with just `prefix` set the card expects:
 
@@ -70,13 +70,20 @@ entities:
 
 ## Development
 
-The source is split into modules under `src/`. HACS downloads only the single file
-`miele-appliance-card.js`, so that file is a generated bundle committed to the repo. After changing
-anything in `src/`, run:
+The source is split into modules under `src/` and bundled into the single file
+`miele-appliance-card.js` (not committed). To build locally:
 
 ```
 npm install   # once
 npm run build
 ```
 
-and commit the regenerated `miele-appliance-card.js` together with your changes.
+### Releasing
+
+Push a version tag; the GitHub Action builds the bundle and attaches it to a new release, which is
+what HACS installs:
+
+```
+git tag v0.2.0
+git push origin v0.2.0
+```
