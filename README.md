@@ -1,64 +1,104 @@
-# Miele Appliance Card
+<p align="center">
+  <img src="https://raw.githubusercontent.com/dimabutenko/ha-miele-appliance-card/master/images/icon.png" width="128" alt="Miele Appliance Card icon">
+</p>
 
-A Lovelace card for a Miele washer or dryer (tested with the
-[`miele_lan`](https://github.com/tiehfood/ha-miele-at-lan) integration), styled after the
-real appliance's own front panel instead of a generic "smart card" look:
+<h1 align="center">Miele Appliance Card</h1>
 
-- A realistic SVG appliance body — door, control strip, vents — with no brand marks.
-- An animated drum: a rotating crosspiece under a settling/splashing water pool while washing,
-  the same crosspiece spinning fast and bare during spin, or a plain tumbling drum for the dryer.
-- A gauge-style progress arc around the door (open 7 o'clock to 5 o'clock), colored per program
-  phase, keeping a colored history of each phase instead of repainting it.
-- An LCD-style screen showing the translated program phase and a digital countdown clock.
-- A power indicator, wifi/door/fault status dots, each with a hover tooltip.
+<p align="center">
+  A Lovelace card for a Miele <b>washer</b> or <b>tumble dryer</b>, drawn like the real front panel:
+  animated drum, an opening door and a colour LCD with the program, time, spin speed and temperature.
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/dimabutenko/ha-miele-appliance-card/master/images/hero.png" alt="Washer running, washer finished with the door open, dryer drying">
+</p>
+
+Tested with the [`miele_lan`](https://github.com/tiehfood/ha-miele-at-lan) integration. There is no title and no
+visible container: the appliance itself is the card. No brand marks, shapes only.
+
+## Features
+
+- **Washer and dryer** from the same card (`appliance: washer | dryer`), each with its own drum behaviour and its own LCD.
+- **Animated drum.** A rotating three-armed crosspiece under a settling, splashing water pool while washing, the
+  same crosspiece spinning fast and bare during spin, a plain tumbling drum for the dryer.
+- **A door that really opens.** When the door sensor reports open, the door swings out (hinge left or right) with
+  its deep glass bowl, and you look into the drum. Nothing turns while it is open.
+- **Progress arc** around the door, coloured per program phase, keeping a coloured history of each phase.
+- **Colour LCD** with the status line, a big time, elapsed and finish time, spin speed, temperature, program
+  type and status icons. Hover any icon for a tooltip.
+- **Translations** (English by default, Russian included) in plain files that are easy to extend.
+
+## Screenshots
+
+| Washing | Delayed start | Finished, door open |
+|:---:|:---:|:---:|
+| <img src="https://raw.githubusercontent.com/dimabutenko/ha-miele-appliance-card/master/images/screenshots/washer-running.png" width="220"> | <img src="https://raw.githubusercontent.com/dimabutenko/ha-miele-appliance-card/master/images/screenshots/washer-delayed-start.png" width="220"> | <img src="https://raw.githubusercontent.com/dimabutenko/ha-miele-appliance-card/master/images/screenshots/washer-finished-door-open.png" width="220"> |
+
+| Dryer | Error | Door hinge on the right |
+|:---:|:---:|:---:|
+| <img src="https://raw.githubusercontent.com/dimabutenko/ha-miele-appliance-card/master/images/screenshots/dryer-drying.png" width="220"> | <img src="https://raw.githubusercontent.com/dimabutenko/ha-miele-appliance-card/master/images/screenshots/washer-error.png" width="220"> | <img src="https://raw.githubusercontent.com/dimabutenko/ha-miele-appliance-card/master/images/screenshots/door-open-right-hinge.png" width="220"> |
 
 ## Installation
 
-### Via the Marketplace (formerly HACS)
+### HACS
 
-Settings → Marketplace → Dashboards → ⋮ → *Add from link* → paste this repository's URL.
+HACS → ⋮ → *Custom repositories* → add `https://github.com/dimabutenko/ha-miele-appliance-card` with type
+*Dashboard* (Lovelace), then download **Miele Appliance Card**.
 
 ### Manual
 
-1. Download `miele-appliance-card.js` from the latest [release](../../releases/latest) and copy it to `/config/www/community/miele-appliance-card/`.
-2. Add it as a Lovelace resource (Settings → Dashboards → ⋮ → Resources → Add resource):
+1. Download `miele-appliance-card.js` from the latest [release](https://github.com/dimabutenko/ha-miele-appliance-card/releases/latest)
+   and copy it to `/config/www/community/miele-appliance-card/`.
+2. Add it as a dashboard resource (Settings → Dashboards → ⋮ → Resources → Add resource):
    `/local/community/miele-appliance-card/miele-appliance-card.js`, type *JavaScript Module*.
 
 ## Configuration
 
-The card has a UI editor (appliance, prefix, language, and per-entity overrides). For YAML:
+The card has a visual editor. For YAML:
 
 ```yaml
 type: custom:miele-appliance-card
 appliance: washer # or dryer
 prefix: bathroom_washing_machine # entity_id prefix shared by the device's entities
-language: en # optional: en | ru. Default: follows the Home Assistant language, falls back to en
+door_hinge: left # optional: left | right
+language: en # optional: en | ru. Default: the Home Assistant language, falls back to en
 ```
 
-The card has no title and no visible container — the appliance itself is the card. Hover the
-indicator dots in the control strip (Wi-Fi, door, fault, power) to see what each one means.
+| Option | Default | Meaning |
+|---|---|---|
+| `appliance` | `washer` | `washer` or `dryer`: picks the silhouette, the drum and the LCD |
+| `prefix` | – | Shared prefix of the device's entity ids (see below) |
+| `door_hinge` | `left` | Which side the door is hinged on, when it is shown open |
+| `language` | auto | `en` or `ru` |
+| `entities` | – | Per-role entity overrides |
 
-### Translations
+### Entities
 
-All user-facing text lives in `src/i18n/` (`en.js` is the default, `ru.js` is Russian). To add a
-language, copy `en.js` to e.g. `de.js`, translate the values, register it in `src/i18n/index.js`.
+With just `prefix` set, the card expects these entities. Anything missing is simply not shown.
 
-By convention, with just `prefix` set the card expects:
+| Role | Entity | Used for |
+|---|---|---|
+| `running` | `binary_sensor.<prefix>_running` | drum animation, ring, power button |
+| `failure` | `binary_sensor.<prefix>_failure` | error on the LCD |
+| `door` | `binary_sensor.<prefix>_door` | opens the door |
+| `status` | `sensor.<prefix>_status` | status line (paused, finished, start in ...), screen off when the machine is off |
+| `phase` | `sensor.<prefix>_program_phase` | status line and ring colour |
+| `progress` | `sensor.<prefix>_progress` | progress ring |
+| `remaining` | `sensor.<prefix>_remaining` | big time |
+| `elapsed` | `sensor.<prefix>_elapsed` | elapsed time |
+| `start_in` | `sensor.<prefix>_start_in` | big time while waiting for a delayed start |
+| `finish_time` | `sensor.<prefix>_finish_time` | finish time, live countdown |
+| `target_temperature` | `sensor.<prefix>_target_temperature` | temperature |
+| `program_type` | `sensor.<prefix>_program_type` | program tag (AUTO / OWN / MAINT) |
+| `standby` | `sensor.<prefix>_standby_state` | screen off in deep standby |
+| `wifi` | `sensor.<prefix>_wifi_signal` | Wi-Fi icon (percent or dBm) |
+| `notification` | `binary_sensor.<prefix>_notification` | bell icon |
+| `smart_grid` | `binary_sensor.<prefix>_smart_grid` | `SG` icon |
+| `mobile_start` | `binary_sensor.<prefix>_mobile_start` | phone icon |
+| `spin_speed` | `sensor.<prefix>_spin_speed` | spin speed (**washer only**) |
+| `drying_step` | `sensor.<prefix>_drying_step` | drying step (**dryer only**) |
 
-| Role         | Entity                           |
-|--------------|-----------------------------------|
-| running      | `binary_sensor.<prefix>_running`  |
-| failure      | `binary_sensor.<prefix>_failure`  |
-| door         | `binary_sensor.<prefix>_door`     |
-| status       | `sensor.<prefix>_status`          |
-| phase        | `sensor.<prefix>_program_phase`   |
-| progress     | `sensor.<prefix>_progress`        |
-| remaining    | `sensor.<prefix>_remaining`       |
-| finish_time  | `sensor.<prefix>_finish_time`     |
-| wifi         | `sensor.<prefix>_wifi_signal`     |
-
-Any of these can be overridden explicitly (useful for a non-standard entity layout), either in
-the UI editor's "Entity overrides" section or in YAML:
+Any of them can be overridden, in the editor's *Entity overrides* section or in YAML:
 
 ```yaml
 type: custom:miele-appliance-card
@@ -68,10 +108,33 @@ entities:
   progress: sensor.some_other_progress_sensor
 ```
 
+## Reading the LCD
+
+| Where | What |
+|---|---|
+| Top left | Program phase or status, plus a tag with the program type |
+| Bottom left | Spin speed and temperature (washer), drying step and temperature (dryer) |
+| Right, big | Time left, or the time until a delayed start |
+| Under the time | Stopwatch: time elapsed. Flag: expected finish time |
+| Wi-Fi icon | Signal strength: three arcs strong, one weak, crossed out when unknown |
+| Bell | Notification pending on the appliance |
+| `SG` | Smart Grid mode on (the appliance may start when the energy supplier signals a good time) |
+| Phone | Mobile start enabled (the appliance can be started from the Miele app) |
+| Red `Error` | The appliance reports a failure |
+
+The LCD is dark while the machine is switched off or in deep standby. The power button on the left is green while a
+program runs and red otherwise.
+
+### Translations
+
+All text lives in `src/i18n/` (`en.js` is the default, `ru.js` is Russian). To add a language, copy `en.js` to e.g.
+`de.js`, translate the values and register it in `src/i18n/index.js`.
+
 ## Development
 
-The source is split into modules under `src/` and bundled into the single file
-`miele-appliance-card.js` (not committed). To build locally:
+The source is split into modules under `src/`: an abstract `Appliance` with `Washer` and `Dryer`, an abstract
+`Display` with a washer and a dryer LCD, the SVG template, geometry and the translations. It is bundled into the single
+file `miele-appliance-card.js` (not committed). To build locally:
 
 ```
 npm install   # once
@@ -80,10 +143,12 @@ npm run build
 
 ### Releasing
 
-Push a version tag; the GitHub Action builds the bundle and attaches it to a new release, which is
-what HACS installs:
+Push a version tag; the GitHub Action builds the bundle and attaches it to a new release, which is what HACS installs:
 
 ```
-git tag v0.2.0
-git push origin v0.2.0
+git tag v0.3.0
+git push origin v0.3.0
 ```
+
+Repository images live in `images/`: `icon.svg` / `icon.png`, `social-preview.png` (upload it under *Settings → General →
+Social preview*), `hero.png` and the screenshots. The screenshots are rendered from the real card.

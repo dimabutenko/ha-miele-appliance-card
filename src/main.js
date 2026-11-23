@@ -1,7 +1,9 @@
 // Miele appliance card — washer/dryer styled after the real appliance's own
 // front panel. Entry point of the sources in src/; `npm run build` bundles it into the
 // single miele-appliance-card.js, which CI attaches to each GitHub release (what HACS installs). Modules:
-//   card.js      the card element
+//   card.js      the card element (wires Home Assistant state to the parts below)
+//   appliances/  abstract Appliance + Washer, Dryer (entities, drum behaviour, LCD)
+//   display/     abstract Display + washer / dryer LCDs, drawing primitives
 //   editor.js    the visual config editor
 //   template.js  SVG/HTML markup
 //   styles.js    CSS
@@ -27,5 +29,7 @@ window.customCards = window.customCards || [];
 window.customCards.push({
   type: "miele-appliance-card",
   name: "Miele Appliance Card",
-  description: "Washer/dryer card styled after the real appliance panel, with a gauge progress arc, a spinning door hub and an LCD screen showing status and a digital countdown.",
+  description: "Washer / dryer card styled after the real appliance panel: animated drum, an opening door and a colour LCD with program, time, spin speed, temperature and status icons.",
+  preview: true,
+  documentationURL: "https://github.com/dimabutenko/ha-miele-appliance-card",
 });

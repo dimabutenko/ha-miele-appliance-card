@@ -1,4 +1,4 @@
-import { BODY_W, BODY_H, SCR_X, SCR_Y, SCR_W, SCR_H, DOOR_CX, DOOR_CY } from "./geometry.js";
+import { BODY_W, BODY_H, DOOR_CX, DOOR_CY } from "./geometry.js";
 
 // The appliance itself is the card: no title, and ha-card is stripped of its
 // background, border, shadow and padding so no container is visible.
@@ -9,7 +9,7 @@ export const STYLES = `
     padding: 0; overflow: visible;
   }
   .wrap { display: flex; flex-direction: column; align-items: center; width: 100%; }
-  .stage { width: 100%; aspect-ratio: ${BODY_W + 4} / ${BODY_H + 4}; position: relative; container-type: inline-size; }
+  .stage { width: 100%; aspect-ratio: ${BODY_W + 4} / ${BODY_H + 4}; position: relative; }
   svg { width: 100%; height: 100%; overflow: visible; display: block; }
   .body { fill: url(#bodyGrad); stroke: #c7c7c9; stroke-width: 1.5; }
   .bar { fill: #262b33; }
@@ -17,8 +17,12 @@ export const STYLES = `
   .grille-frame { fill: none; stroke: #d6d6d7; stroke-width: 1; }
   .pwr-ring { fill: none; stroke: #7d8590; stroke-width: 1.2; }
   .dot { stroke: rgba(0,0,0,0.35); stroke-width: 0.5; transition: fill 0.4s ease; }
+  .closed-only, .open-only { transition: opacity 0.5s ease; }
+  .open-only { opacity: 0; }
+  .stage.open .open-only { opacity: 1; }
+  .stage.open .closed-only { opacity: 0; }
   .hit { fill: transparent; cursor: help; }
-  .screen-bezel { fill: #0b0f0d; stroke: #2a2f2d; stroke-width: 1.2; }
+  .screen-bezel { fill: url(#lcdGrad); stroke: #3a4350; stroke-width: 1; }
   .rim { fill: url(#doorGrad); stroke: #9aa0a6; stroke-width: 3; }
   .ring-track { fill: none; stroke-width: 6; stroke-linecap: round; opacity: 0.3; transition: stroke 0.4s ease; }
   .ring-seg { fill: none; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease, stroke-dasharray 0.6s ease; }
@@ -44,7 +48,7 @@ export const STYLES = `
   .cross-face { fill: url(#crossGrad); }
   .cross-bevel { fill: none; stroke: #6f7a82; stroke-width: 3.2; stroke-linejoin: round; opacity: 0.75; }
   .cross-edge { fill: none; stroke: #eef3f5; stroke-width: 0.8; stroke-linejoin: round; opacity: 0.7; }
-  .cross-hub { fill: url(#hubGrad); stroke: #3d454b; stroke-width: 0.8; }
+  .cross-hub { fill: url(#hubGrad); pointer-events: none; }
   .pool { fill: url(#waterGrad); opacity: 0.78; stroke: #bfe8f5; stroke-width: 1; stroke-opacity: 0.45; }
   .splash {
     fill: #d6f1fb; transform-origin: center; transform-box: fill-box;
@@ -59,16 +63,8 @@ export const STYLES = `
   }
   .glass-tint { fill: rgba(5, 9, 11, 0.45); }
   .glass-shine { fill: url(#shineGrad); pointer-events: none; }
-  .screen-text {
-    position: absolute;
-    left: ${(100 * SCR_X) / (BODY_W + 4)}%; top: ${(100 * SCR_Y) / (BODY_H + 4)}%;
-    width: ${(100 * SCR_W) / (BODY_W + 4)}%; height: ${(100 * SCR_H) / (BODY_H + 4)}%;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
-    box-sizing: border-box; pointer-events: none; overflow: hidden;
-    font-family: "Consolas", "SFMono-Regular", monospace; text-align: center;
-  }
-  .screen-line1 { font-size: 3.6cqw; font-weight: 600; letter-spacing: 0.01em; color: #8be9c7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-  .screen-clock { font-size: 4.6cqw; font-weight: 700; font-variant-numeric: tabular-nums; color: #8be9c7; }
-  .screen-clock .colon { animation: blink 1s step-end infinite; }
-  .screen-line1.failure, .screen-clock.failure { color: #ff9a9a; }
+  /* LCD text: words in monospace, digits in the theme's UI font with fixed-width figures. */
+  .lcd-label { font-family: "Consolas", "SFMono-Regular", monospace; pointer-events: none; }
+  .lcd-num { font-family: var(--primary-font-family, Roboto, "Segoe UI", system-ui, sans-serif); font-variant-numeric: tabular-nums; pointer-events: none; }
+  .lcd-colon.blink { animation: blink 1s step-end infinite; }
 `;

@@ -1,20 +1,10 @@
 import { LANGUAGES, resolveLanguage, makeTranslator } from "./i18n/index.js";
+import { createAppliance } from "./appliances/index.js";
 
 // UI config editor via HA's own <ha-form> — appliance/prefix/language plus every
 // entity override, grouped in a collapsed "Entity overrides" section. Any
 // override left empty falls back to the `prefix`-derived default (the card's
 // setConfig drops empty entries before merging).
-const ENTITY_FIELDS = [
-  { name: "running", domain: "binary_sensor" },
-  { name: "failure", domain: "binary_sensor" },
-  { name: "door", domain: "binary_sensor" },
-  { name: "status", domain: "sensor" },
-  { name: "phase", domain: "sensor" },
-  { name: "progress", domain: "sensor" },
-  { name: "remaining", domain: "sensor" },
-  { name: "finish_time", domain: "sensor" },
-  { name: "wifi", domain: "sensor" },
-];
 
 export class MieleApplianceCardEditor extends HTMLElement {
   setConfig(config) {
@@ -47,6 +37,18 @@ export class MieleApplianceCardEditor extends HTMLElement {
       },
       { name: "prefix", selector: { text: {} } },
       {
+        name: "door_hinge",
+        selector: {
+          select: {
+            mode: "dropdown",
+            options: [
+              { value: "left", label: t("editor.hinge_left") },
+              { value: "right", label: t("editor.hinge_right") },
+            ],
+          },
+        },
+      },
+      {
         name: "language",
         selector: {
           select: {
@@ -62,7 +64,7 @@ export class MieleApplianceCardEditor extends HTMLElement {
         name: "entities",
         type: "expandable",
         title: t("editor.entities"),
-        schema: ENTITY_FIELDS.map(({ name, domain }) => ({
+        schema: createAppliance(this._config.appliance).entityFields.map(({ name, domain }) => ({
           name,
           selector: { entity: { domain } },
         })),
@@ -87,7 +89,7 @@ export class MieleApplianceCardEditor extends HTMLElement {
     }
     const t = makeTranslator(resolveLanguage(this._config.language, this._hass));
     this._form.hass = this._hass;
-    this._form.data = { language: "", ...this._config };
+    this._form.data = { language: "", door_hinge: "left", ...this._config };
     this._form.schema = this._schema(t);
     this._form.computeLabel = (s) => t(`editor.${s.name}`);
   }
