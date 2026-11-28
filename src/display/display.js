@@ -60,8 +60,8 @@ export class Display {
     const t = this.t;
     if (isPoweredOff(s)) return { standby: true };
 
-    const program = this._programName(s.programId);
-    const phase = phaseLabel(t, s.phase);
+    const program = this._programName(s.programId, s.programText);
+    const phase = phaseLabel(t, s.phase, s.phaseText);
     const statusText = this._statusLabel(s.status);
     const d = { title: "", phase: "", color: LCD.white, time: null, timeColor: LCD.white, error: false, showRow: true, icon: STATUS_ICON[s.status] || null, blink: false };
     // Line 1 is the program when it is known, otherwise the state itself; line 2 is the state.
@@ -104,12 +104,14 @@ export class Display {
     return v === key ? "" : v;
   }
 
-  // "cottons" -> "Cottons". (Translated names come from the locale files.)
-  _programName(key) {
+  // "cottons" -> "Cottons". Translated names come from the locale files; a program the
+  // locale does not know is shown as the text the integration gave, or else prettified.
+  _programName(key, text) {
     if (!key || key === "no_program" || key === "unknown") return "";
     const k = `programs.${key}`;
     const v = this.t(k);
     if (v !== k) return v;
+    if (text) return text;
     const w = String(key).replace(/_/g, " ");
     return w.charAt(0).toUpperCase() + w.slice(1);
   }
@@ -149,8 +151,10 @@ export class Display {
       const what = empty ? tip("twindos_empty") : `${tip("twindos_low")} (${c.level} %)`;
       out.push((cx, cy) => dropTile(i + 1, cx, cy, empty ? LCD.red : LCD.amber, `${tip("twindos")} ${i + 1}: ${what}`));
     });
-    const wifiTip = s.wifi == null ? tip("wifi_unknown") : `${tip("wifi")}: ${s.wifi}${s.wifiUnit ? ` ${s.wifiUnit}` : ""}`;
-    out.push((cx, cy) => wifi(cx, cy, this._wifiBars(s.wifi), wifiTip));
+    if (s.hasWifi) {
+      const wifiTip = s.wifi == null ? tip("wifi_unknown") : `${tip("wifi")}: ${s.wifi}${s.wifiUnit ? ` ${s.wifiUnit}` : ""}`;
+      out.push((cx, cy) => wifi(cx, cy, this._wifiBars(s.wifi), wifiTip));
+    }
     if (s.notification) out.push((cx, cy) => bell(cx, cy, true, tip("notification")));
     if (s.smartGrid) out.push((cx, cy) => smartGrid(cx, cy, true, tip("smart_grid")));
     if (s.mobileStart) out.push((cx, cy) => phone(cx, cy, true, tip("mobile_start")));

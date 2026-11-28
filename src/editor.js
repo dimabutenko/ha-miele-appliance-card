@@ -1,12 +1,11 @@
 import { LANGUAGES, resolveLanguage, makeTranslator } from "./i18n/index.js";
 import { createAppliance } from "./appliances/index.js";
 
-// UI config editor via HA's own <ha-form> — appliance/prefix/language plus every
-// entity override, grouped in a collapsed "Entity overrides" section. Any
-// override left empty falls back to the `prefix`-derived default (the card's
-// setConfig drops empty entries before merging).
+// UI config editor via HA's own <ha-form>: the appliance, then either a device (every entity
+// is picked up by role) or a prefix, language and hinge, and, in a collapsed section, one
+// entity picker per role. A role left empty is resolved from the device/prefix.
 
-export class MieleApplianceCardEditor extends HTMLElement {
+export class ApplianceCardEditor extends HTMLElement {
   setConfig(config) {
     this._config = config;
     this._render();
@@ -35,6 +34,7 @@ export class MieleApplianceCardEditor extends HTMLElement {
           },
         },
       },
+      { name: "device", selector: { device: {} } },
       { name: "prefix", selector: { text: {} } },
       {
         name: "door_hinge",
@@ -80,6 +80,8 @@ export class MieleApplianceCardEditor extends HTMLElement {
         ev.stopPropagation();
         const value = { ...ev.detail.value };
         if (!value.language) delete value.language; // "auto" = no key
+        if (!value.device) delete value.device;
+        if (!value.prefix) delete value.prefix;
         this._config = value;
         this.dispatchEvent(
           new CustomEvent("config-changed", { detail: { config: this._config }, bubbles: true, composed: true })

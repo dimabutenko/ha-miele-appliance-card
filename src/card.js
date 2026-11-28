@@ -4,23 +4,28 @@ import { phaseColor } from "./phase.js";
 import { isPoweredOff } from "./display/display.js";
 import { createAppliance } from "./appliances/index.js";
 import { resolveLanguage, makeTranslator } from "./i18n/index.js";
+import { resolveEntities } from "./entities.js";
+import { keyAndText, normStatus, normProgram, snake } from "./vocabulary.js";
 
-export class MieleApplianceCard extends HTMLElement {
+// A card for a household appliance (washer, dryer, ...). It is not tied to a brand or an
+// integration: it asks for a `device` (all its entities are picked up by role), or for a
+// `prefix`, or for each entity separately (see entities.js).
+export class ApplianceCard extends HTMLElement {
   setConfig(config) {
-    if (!config.prefix && !config.entities) {
-      throw new Error("miele-appliance-card: set `prefix` (or an explicit `entities` map)");
+    if (!config.device && !config.prefix && !(config.entities && Object.keys(config.entities).length)) {
+      throw new Error("appliance card: set `device` (or `prefix`, or an `entities` map)");
     }
     const type = config.appliance === "dryer" ? "dryer" : "washer";
     const appliance = createAppliance(type);
-    // Drop empty/falsy overrides (e.g. a UI entity picker left blank) so they
-    // fall back to the prefix-derived default instead of pointing at "".
-    const overrides = Object.fromEntries(Object.entries(config.entities || {}).filter(([, v]) => v));
     this._appliance = appliance;
+    this._entities = null; // resolved against Home Assistant in the `hass` setter
     this._config = {
       type,
+      device: config.device || null,
+      prefix: config.prefix || null,
+      userEntities: config.entities && typeof config.entities === "object" ? config.entities : {},
       language: config.language || null,
       hinge: config.door_hinge === "right" ? "right" : "left",
-      entities: { ...appliance.defaultEntities(config.prefix), ...overrides },
       debug: config.debug === true,
       // Per-card program name overrides: { program_key: "Shown text" }.
       programNames: config.program_names && typeof config.program_names === "object" ? config.program_names : {},
@@ -39,15 +44,27 @@ export class MieleApplianceCard extends HTMLElement {
   }
 
   static getStubConfig() {
-    return { type: "custom:miele-appliance-card", appliance: "washer", prefix: "bathroom_washing_machine" };
+    return { appliance: "washer" };
   }
 
   static getConfigElement() {
-    return document.createElement("miele-appliance-card-editor");
+    return document.createElement("home-appliance-card-editor");
+  }
+
+  // Entities by role. Resolved again when Home Assistant's entity registry changes.
+  _resolve(hass) {
+    if (this._entities && this._entitiesRef === hass.entities) return;
+    this._entitiesRef = hass.entities;
+    this._entities = resolveEntities(
+      hass,
+      { device: this._config.device, prefix: this._config.prefix, entities: this._config.userEntities },
+      this._appliance.entityFields
+    );
   }
 
   set hass(hass) {
     this._hass = hass;
+    this._resolve(hass);
     if (!this._built) this._build();
     const lang = resolveLanguage(this._config.language, hass);
     if (lang !== this._lang) {
@@ -58,6 +75,10 @@ export class MieleApplianceCard extends HTMLElement {
         if (key.startsWith("programs.")) {
           const o = names[key.slice(9)];
           if (o) return String(o);
+          if (this._config.type === "washer") {
+            const w = base(`programsWasher.${key.slice(9)}`);
+            if (!w.startsWith("programsWasher.")) return w;
+          }
         }
         return base(key, ...rest);
       };
@@ -98,7 +119,7 @@ export class MieleApplianceCard extends HTMLElement {
 
   // Entity helpers, addressed by role name (`running`, `door`, ...).
   _id(name) {
-    return this._config.entities[name];
+    return this._entities ? this._entities[name] : undefined;
   }
 
   _str(name) {
@@ -133,22 +154,45 @@ export class MieleApplianceCard extends HTMLElement {
   _readState() {
     const num = (n) => this._num(n);
     const str = (n) => this._known(n);
+    const has = (n) => this._id(n) !== undefined && this._hass.states[this._id(n)] !== undefined;
+
+    // The program and the phase may come as keys (`main_wash`) or as text with the key in an
+    // attribute; both end up as a normalised key plus an optional ready-made text.
+    const program = keyAndText(this._hass.states[this._id("program_id")], "program_key", normProgram);
+    const phase = keyAndText(this._hass.states[this._id("phase")], "phase_key", snake);
+    const statusRaw = this._known("status");
+    let status = statusRaw ? normStatus(statusRaw) : null;
+
+    // `finished` says the program is over although the appliance still reports itself as in use.
+    const finished = this._str("finished") === "on";
+    if (finished && (status === "in_use" || !status)) status = "program_ended";
+    // Without a `running` entity, "in use and not finished" is the best reading.
+    const running = has("running") ? this._str("running") === "on" : status === "in_use" && !finished;
+
+    // A delayed start may come as minutes or as the time it will start.
+    let startIn = num("start_in");
+    const startMs = this._ms("start_time");
+    if (startIn === null && startMs !== null) startIn = Math.max(0, Math.ceil((startMs - Date.now()) / 60000));
+
     return {
-      running: this._str("running") === "on",
+      running,
       failure: this._str("failure") === "on",
       doorOpen: this._str("door") === "on",
-      status: this._known("status"),
-      phase: this._known("phase"),
+      status,
+      phase: phase.key,
+      phaseText: phase.text,
       progress: num("progress"),
       remaining: num("remaining"),
       elapsed: num("elapsed"),
-      startIn: num("start_in"),
+      startIn,
       finishMs: this._ms("finish_time"),
       wifi: num("wifi"),
+      hasWifi: has("wifi"),
       wifiUnit: this._unit("wifi"),
       targetTemp: num("target_temperature"),
       tempUnit: this._unit("target_temperature"),
-      programId: str("program_id"),
+      programId: program.key,
+      programText: program.text,
       debug: this._config.debug,
       programRaw: this._str("program_id"),
       notification: this._str("notification") === "on",
@@ -190,7 +234,7 @@ export class MieleApplianceCard extends HTMLElement {
   }
 
   _totalKey() {
-    return `miele-appliance-card:${this._id("remaining")}`;
+    return `home-appliance-card:${this._id("remaining") || this._config.device || this._config.prefix}`;
   }
 
   _loadTotal() {

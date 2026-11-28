@@ -1,27 +1,32 @@
 // Abstract appliance model. A concrete appliance (washer, dryer, ...) says which
-// entities it has, how its drum behaves and which LCD it carries; the card
-// itself only wires Home Assistant state to those pieces.
+// roles it has, how its drum behaves and which LCD it carries; the card itself only
+// wires Home Assistant state to those pieces. Nothing here is tied to a brand.
 
-// Entities every Miele appliance of this integration exposes. `suffix` is the
-// part after `<prefix>_` in the entity id.
+// The roles every appliance has. `suffix` is the conventional entity-id tail used with a
+// `prefix`; `aliases` are other names integrations give the same kind of entity (matched
+// against translation keys and entity-id tails when a `device` is configured).
 const COMMON_ENTITIES = [
   { name: "running", domain: "binary_sensor", suffix: "running" },
+  // The program is over but the appliance is not released yet (e.g. a dryer in its crease guard).
+  { name: "finished", domain: "binary_sensor", suffix: "finished", aliases: ["program_finished"] },
   { name: "failure", domain: "binary_sensor", suffix: "failure" },
   { name: "door", domain: "binary_sensor", suffix: "door" },
   { name: "notification", domain: "binary_sensor", suffix: "notification" },
   { name: "smart_grid", domain: "binary_sensor", suffix: "smart_grid" },
   { name: "mobile_start", domain: "binary_sensor", suffix: "mobile_start" },
   { name: "status", domain: "sensor", suffix: "status" },
-  { name: "phase", domain: "sensor", suffix: "program_phase" },
-  { name: "program_id", domain: "sensor", suffix: "program_id" },
+  { name: "phase", domain: "sensor", suffix: "program_phase", aliases: ["phase"] },
+  { name: "program_id", domain: "sensor", suffix: "program_id", aliases: ["program"] },
   { name: "progress", domain: "sensor", suffix: "progress" },
-  { name: "remaining", domain: "sensor", suffix: "remaining" },
-  { name: "elapsed", domain: "sensor", suffix: "elapsed" },
+  { name: "remaining", domain: "sensor", suffix: "remaining", aliases: ["remaining_time"] },
+  { name: "elapsed", domain: "sensor", suffix: "elapsed", aliases: ["elapsed_time"] },
   { name: "start_in", domain: "sensor", suffix: "start_in" },
-  { name: "finish_time", domain: "sensor", suffix: "finish_time" },
+  // The same as `start_in`, as a timestamp instead of minutes.
+  { name: "start_time", domain: "sensor", suffix: "start_time", aliases: ["delayed_start"] },
+  { name: "finish_time", domain: "sensor", suffix: "finish_time", aliases: ["end_time"] },
   { name: "target_temperature", domain: "sensor", suffix: "target_temperature" },
-  { name: "standby", domain: "sensor", suffix: "standby_state" },
-  { name: "wifi", domain: "sensor", suffix: "wifi_signal" },
+  { name: "standby", domain: "sensor", suffix: "standby_state", aliases: ["standby"] },
+  { name: "wifi", domain: "sensor", suffix: "wifi_signal", aliases: ["wifi"] },
 ];
 
 export class Appliance {
@@ -36,12 +41,6 @@ export class Appliance {
 
   get entityFields() {
     return [...COMMON_ENTITIES, ...this.extraEntities];
-  }
-
-  // Entity ids by convention: `<domain>.<prefix>_<suffix>`.
-  defaultEntities(prefix) {
-    if (!prefix) return {};
-    return Object.fromEntries(this.entityFields.map((f) => [f.name, `${f.domain}.${prefix}_${f.suffix}`]));
   }
 
   // The concrete LCD for this appliance.

@@ -1,6 +1,5 @@
-// Phase classification. Phase keys come from the integration
-// (ProgramPhaseWashingMachine / ProgramPhaseTumbleDryer); display text lives in
-// the locale files under `phases`.
+// Phase classification from the (snake_case) phase key; display text lives in the
+// locale files under `phases`.
 export function phaseKind(phase) {
   if (!phase) return null;
   const p = phase.toLowerCase();
@@ -8,7 +7,7 @@ export function phaseKind(phase) {
   if (/rinse|venting|freshen/.test(p)) return "rinse";
   if (/wash/.test(p)) return "wash";
   if (/dry|warm_air|moisten|normal|hygiene|disinfect/.test(p)) return "dry";
-  if (/iron|smooth|cool|anti_crease|thermo_spin|starch/.test(p)) return "finish";
+  if (/iron|smooth|cool|crease|thermo_spin|starch/.test(p)) return "finish";
   return null;
 }
 

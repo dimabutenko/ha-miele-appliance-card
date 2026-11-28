@@ -19,6 +19,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - run: npm test
       - run: node --check --input-type=module < miele-appliance-card.js
 
       # Only on a version tag: publish the bundle as the release asset HACS installs.

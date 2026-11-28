@@ -27,10 +27,11 @@ export function makeTranslator(lang) {
   return (path) => lookup(dict, path) ?? lookup(fallback, path) ?? path;
 }
 
-// Phase label from the integration's snake_case enum key; unknown keys are
-// shown as readable text rather than dropped.
-export function phaseLabel(t, key) {
+// Phase label from a snake_case key. A key the locale does not know is shown as the text the
+// integration gave (if any), or else as readable text, rather than dropped.
+export function phaseLabel(t, key, text) {
   if (!key || key === "unknown" || key === "off" || key === "on") return null;
   const label = t(`phases.${key}`);
-  return label === `phases.${key}` ? key.replace(/_/g, " ") : label;
+  if (label !== `phases.${key}`) return label;
+  return text || key.replace(/_/g, " ");
 }

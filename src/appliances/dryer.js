@@ -3,7 +3,7 @@ import { DryerDisplay } from "../display/dryer-display.js";
 
 export class Dryer extends Appliance {
   get extraEntities() {
-    return [{ name: "drying_step", domain: "sensor", suffix: "drying_step" }];
+    return [{ name: "drying_step", domain: "sensor", suffix: "drying_step", aliases: ["drying_level"] }];
   }
 
   createDisplay(t) {
