@@ -160,6 +160,56 @@ export class MieleApplianceCard extends HTMLElement {
     };
   }
 
+  // Ring fill in %. Miele often leaves the `progress` sensor at 0 for the whole cycle, so
+  // when it does, estimate it from the time left: 1 - left / longest total seen. The total
+  // is remembered in localStorage so a page reload mid-cycle keeps the estimate.
+  _progressPct(s) {
+    const clamp = (v) => Math.max(0, Math.min(100, v));
+    const sensor = s.progress === null ? null : clamp(s.progress);
+    if (!s.running || s.failure) {
+      this._est = null;
+      this._storeTotal(null);
+      return sensor;
+    }
+    if (sensor > 0) {
+      this._est = null;
+      return sensor;
+    }
+    const now = Date.now();
+    const left = s.finishMs != null ? Math.max(0, (s.finishMs - now) / 60000) : s.remaining;
+    if (left == null) return sensor;
+    if (!this._est) {
+      const saved = this._loadTotal();
+      this._est = { total: saved && saved.finishMs > now - 120000 ? saved.total : left, pct: 0 };
+    }
+    const e = this._est;
+    e.total = Math.max(e.total, left + (s.elapsed || 0), 1);
+    e.pct = Math.max(e.pct, clamp((1 - left / e.total) * 100)); // never moves backwards
+    this._storeTotal({ total: e.total, finishMs: s.finishMs ?? now + left * 60000 });
+    return Math.round(e.pct * 10) / 10;
+  }
+
+  _totalKey() {
+    return `miele-appliance-card:${this._id("remaining")}`;
+  }
+
+  _loadTotal() {
+    try {
+      return JSON.parse(localStorage.getItem(this._totalKey()));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  _storeTotal(v) {
+    try {
+      if (v) localStorage.setItem(this._totalKey(), JSON.stringify(v));
+      else localStorage.removeItem(this._totalKey());
+    } catch (_) {
+      /* storage unavailable: the estimate just restarts after a reload */
+    }
+  }
+
   // Keeps a trail of {color, start, end} (in %) along the gauge: each phase
   // paints only the stretch of the arc covered while it was running, so an
   // earlier phase's share doesn't repaint when a later one takes over.
@@ -226,7 +276,7 @@ export class MieleApplianceCard extends HTMLElement {
     crosspiece.classList.toggle("fast", view.crosspiece.fast);
 
     // Progress ring.
-    const pct = s.progress === null ? null : Math.max(0, Math.min(100, s.progress));
+    const pct = this._progressPct(s);
     let stateColor = "var(--disabled-text-color, #5a5a60)";
     if (s.failure) stateColor = "var(--error-color, #e05555)";
     else if (s.running) stateColor = phaseColor(s.phase) || "var(--primary-color, #26a69a)";
