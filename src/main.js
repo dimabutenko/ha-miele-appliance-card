@@ -16,6 +16,8 @@
 //   appliance: washer | dryer          # picks the silhouette
 //   prefix: bathroom_washing_machine   # entity_id prefix shared by this device's entities
 //   language: en | ru                  # optional; default follows the Home Assistant language
+//   debug: true                        # optional; LCD line 2 shows the raw program_id value
+//   program_names:                     # optional; override program texts, e.g. gentle_smoothing: Bed linen
 //   entities:                          # optional, overrides the by-convention ids
 //     status, phase, progress, remaining, finish_time, running, failure, door, wifi
 

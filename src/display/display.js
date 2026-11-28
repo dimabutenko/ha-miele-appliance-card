@@ -92,6 +92,8 @@ export class Display {
         d.time = { min: s.remaining };
       }
     }
+    // Debug mode: line 2 shows the raw `program_id` value, to map the dial to our names.
+    if (s.debug && !d.error) d.phase = `id: ${s.programRaw ?? "-"}`;
     return d;
   }
 

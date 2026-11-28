@@ -21,6 +21,9 @@ export class MieleApplianceCard extends HTMLElement {
       language: config.language || null,
       hinge: config.door_hinge === "right" ? "right" : "left",
       entities: { ...appliance.defaultEntities(config.prefix), ...overrides },
+      debug: config.debug === true,
+      // Per-card program name overrides: { program_key: "Shown text" }.
+      programNames: config.program_names && typeof config.program_names === "object" ? config.program_names : {},
     };
     this._lang = null;
     this._segments = [];
@@ -49,7 +52,15 @@ export class MieleApplianceCard extends HTMLElement {
     const lang = resolveLanguage(this._config.language, hass);
     if (lang !== this._lang) {
       this._lang = lang;
-      this._t = makeTranslator(lang);
+      const base = makeTranslator(lang);
+      const names = this._config.programNames;
+      this._t = (key, ...rest) => {
+        if (key.startsWith("programs.")) {
+          const o = names[key.slice(9)];
+          if (o) return String(o);
+        }
+        return base(key, ...rest);
+      };
       this._display = this._appliance.createDisplay(this._t);
       this._display.attach(this._root);
     }
@@ -138,6 +149,8 @@ export class MieleApplianceCard extends HTMLElement {
       targetTemp: num("target_temperature"),
       tempUnit: this._unit("target_temperature"),
       programId: str("program_id"),
+      debug: this._config.debug,
+      programRaw: this._str("program_id"),
       notification: this._str("notification") === "on",
       smartGrid: this._str("smart_grid") === "on",
       mobileStart: this._str("mobile_start") === "on",
